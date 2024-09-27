@@ -24,12 +24,20 @@
 
   // Handle input change and update numberInput
   function handleInput(event) {
-		debugger;
     let value = event.target.value;
 
     // Remove existing format characters for internal storage
     value = isEuropeanFormat ? value.replace(/\./g, '').replace(',', '.') : value.replace(/,/g, '');
 
+		 // Check if the first character is an invalid separator for the current format
+    if (value.length === 1) {
+      if (isEuropeanFormat && value === '.') {
+        value = ''; // Remove dot in European format as first character
+      } else if (!isEuropeanFormat && value === ',') {
+        value = ''; // Remove comma in Metric format as first character
+      }
+    }
+		
     // Check if the value has multiple decimal separators and remove extras
     const decimalSeparator = isEuropeanFormat ? ',' : '.';
     const parts = value.split('.');
@@ -37,23 +45,19 @@
       value = parts[0] + decimalSeparator + parts.slice(1).join('');
     }
 		
-			console.log('value ', value)
+		
     // Check if the value has a trailing decimal or zeros after the decimal
     const hasTrailingDecimal = value.endsWith('.') || value.endsWith(',');
-    // const decimalMatch = isEuropeanFormat ? value.match(/^\d*,\d*0*$/) : value.match(/^\d*\.\d*0*$/);
     const decimalMatch = value.match(/^\d*\.\d*0*$/);
-		console.log('parts[1]',parts[1])
 		const trailingZeros = (parts[1] || '').match(/0+$/);
 		
 		
     // If the value is valid, update numberInput and format the display, otherwise keep raw input
     if (!isNaN(parseFloat(value.replace(',', '.'))) || hasTrailingDecimal || decimalMatch) {
       numberInput = parseFloat(value.replace(',', '.')) || 0;
-			console.log(formatNumber(numberInput),'hasTrailingDecimal',hasTrailingDecimal,'trailing zeros after dec: ', decimalMatch, "   ", trailingZeros, !formatNumber(numberInput).includes(decimalSeparator))
       displayValue = formatNumber(numberInput) + 
 				(formatNumber(numberInput).includes(decimalSeparator) ? '':hasTrailingDecimal || trailingZeros  ? decimalSeparator : '') + 
 				(decimalMatch && trailingZeros ? trailingZeros:''); // Keep trailing decimal in display
-			console.log('value ', value)
 			
     } else {
       displayValue = event.target.value; // Preserve the input as is
